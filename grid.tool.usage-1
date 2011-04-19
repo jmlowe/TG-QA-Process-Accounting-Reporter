@@ -1,0 +1,29 @@
+#! /usr/bin/env python
+import sys
+from inca.UsageReporter import UsageReporter
+try:
+  import json
+except ImportError:
+  import simplejson as json
+
+
+reporter =  UsageReporter(name = 'Grid Tool Usage Reporter',
+                             version = 0.1,
+                             description = 'This reporter uses process accounting to measure grid \
+                                            tool usage',
+                             url = 'http://some.where/')
+
+reporter.addArg('pacctjson', 'path to digested process accounting log files separated by :', '', '|.*')
+
+reporter.processArgv(sys.argv[1:])
+
+log_filename = reporter.argValue('pacctjson')
+
+beginend, data = json.load(open(log_filename,'r'))
+for tool in data:
+   reporter.addEntry({'type':'tool','name':tool,'stats':{'count':sum(data[tool].values()),
+                                                          'users':len(data[tool])}})
+reporter.success()
+
+print reporter.report()
+
